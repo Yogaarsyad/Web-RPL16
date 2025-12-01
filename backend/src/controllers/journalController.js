@@ -4,9 +4,19 @@ const db = require('../config/db');
 exports.createJournal = async (req, res) => {
   try {
     const { title, content } = req.body;
-    await db.query('INSERT INTO journals (title, content) VALUES ($1, $2)', [title, content]);
+    
+    // Validate input
+    if (!title || !content) {
+      return res.status(400).json({ success: false, error: 'Title and content are required' });
+    }
+    
+    await db.query(
+      'INSERT INTO journals (title, content, created_at) VALUES ($1, $2, NOW())', 
+      [title, content]
+    );
     res.status(201).json({ success: true, message: 'Journal created successfully' });
   } catch (err) {
+    console.error('Journal creation error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -17,6 +27,7 @@ exports.getJournals = async (req, res) => {
     const { rows } = await db.query('SELECT * FROM journals ORDER BY created_at DESC');
     res.json({ success: true, data: rows });
   } catch (err) {
+    console.error('Get journals error:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -28,6 +39,7 @@ exports.deleteJournal = async (req, res) => {
       await db.query('DELETE FROM journals WHERE id = $1', [id]);
       res.json({ success: true, message: 'Journal deleted' });
     } catch (err) {
+      console.error('Delete journal error:', err);
       res.status(500).json({ success: false, error: err.message });
     }
-  };
+};

@@ -140,6 +140,7 @@ function DashboardLayout({ onLogout }) {
           
           {/* 🔥 MENU CHAT (UNTUK SEMUA USER) 🔥 */}
           <NavItem to="/dashboard/chat" icon={FiMessageSquare} label="AI Assistant" />
+          <NavItem to="/dashboard/journal" icon={FiFileText} label="Announcements" />
           
           <div className="mt-8 px-4 mb-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Settings</div>
           <NavItem to="/dashboard/profile" icon={FiUser} label="My Profile" />

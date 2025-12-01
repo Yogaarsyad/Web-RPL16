@@ -35,6 +35,9 @@ const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage'));
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage'));
 const AdminJournalPage = lazy(() => import('./pages/AdminJournalPage')); // <--- PASTIKAN INI ADA
 
+// Journal Page (Public)
+const JournalPage = lazy(() => import('./pages/JournalPage'));
+
 // Loading Screen
 const PageLoader = () => (
   <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 transition-all duration-300">
@@ -84,6 +87,7 @@ function AppContent() {
             <Route path="activity-history" element={<ActivityHistoryPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="share" element={<SocialSharePage />} />
+            <Route path="journal" element={<JournalPage />} />
             
             {/* --- ADMIN ROUTES --- */}
             <Route path="admin" element={<AdminUsersPage />} />

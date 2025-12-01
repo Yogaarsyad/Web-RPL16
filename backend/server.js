@@ -31,6 +31,7 @@ const exerciseLogRoutes = loadRouter('./src/routes/exerciseLogRoutes');
 const reportRoutes = loadRouter('./src/routes/reportRoutes');
 const adminRoutes = loadRouter('./src/routes/adminRoutes'); 
 const chatRoutes = loadRouter('./src/routes/chatRoutes'); 
+const journalRoutes = require('./src/routes/journalRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -51,6 +52,7 @@ app.use('/api/exercise-logs', exerciseLogRoutes);
 app.use('/api/laporan', reportRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/chat', chatRoutes); 
+app.use('/api/journals', journalRoutes);
 
 app.get('/', (req, res) => {
   res.send('API LifeMon Berjalan...');
