@@ -33,7 +33,7 @@ function AdminJournalPage() {
       setContent('');
       await loadJournals(); // Refresh list
       alert('Pengumuman berhasil diposting!');
-    } catch (error) {
+    } catch {
       alert('Gagal memposting jurnal.');
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ function AdminJournalPage() {
         try {
             await deleteJournal(id);
             loadJournals();
-        } catch (error) {
+        } catch {
             alert('Gagal menghapus.');
         }
     }

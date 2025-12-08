@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { 
   FiMenu, FiX, FiLogOut, FiBarChart2, 
   FiHome, FiUser, FiActivity, FiMessageSquare, FiShare2, 
   FiShield, FiFileText // Pastikan FiFileText diimport untuk icon Journal
 } from 'react-icons/fi';
+import LanguageSwitcher from './LanguageSwitcher';
 
 function DashboardLayout({ onLogout }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -12,15 +13,17 @@ function DashboardLayout({ onLogout }) {
   const [currentUser, setCurrentUser] = useState({ nama: '', avatar_url: '', role: '' });
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const location = useLocation();
 
-  // --- 1. HELPER URL GAMBAR ---
-  const getFullImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http') || url.startsWith('blob')) return url; 
-    return `http://localhost:5000${url}`; 
-  };
+  // Di DashboardLayout.jsx dan ProfilePage.jsx
+const getFullImageUrl = (url) => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('blob')) return url; 
+  // PERBAIKAN: Gunakan localhost:5000 untuk development
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `http://localhost:5000${cleanUrl}`; 
+};
 
   // --- 2. LOAD DATA USER ---
   const loadUserFromStorage = () => {
@@ -87,14 +90,15 @@ function DashboardLayout({ onLogout }) {
             : 'text-slate-400 hover:bg-white/5 hover:text-white'
         }`}
       >
-        <Icon className={`text-xl mr-3 ${isActive ? 'text-white' : 'group-hover:text-blue-400'}`} />
+        {Icon && <Icon className={`text-xl mr-3 ${isActive ? 'text-white' : 'group-hover:text-blue-400'}`} />}
         <span className="font-medium tracking-wide">{label}</span>
       </Link>
     );
   };
 
-  const avatarSrc = getFullImageUrl(currentUser.avatar_url) || 
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.nama || 'User')}&background=0ea5e9&color=fff`;
+  const avatarSrc = getFullImageUrl(currentUser.avatar_url) 
+                    ? getFullImageUrl(currentUser.avatar_url) + `?t=${Date.now()}`
+                    : `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.nama || 'User')}&background=0ea5e9&color=fff`;
 
   return (
     <div className="flex h-screen bg-slate-900 font-sans text-slate-100 overflow-hidden relative">
@@ -174,26 +178,29 @@ function DashboardLayout({ onLogout }) {
             <h2 className="text-lg font-semibold text-white hidden sm:block">{getPageTitle()}</h2>
           </div>
 
-          <Link to="/dashboard/profile" className="flex items-center gap-3 pl-4 py-1.5 pr-2 rounded-full hover:bg-white/5 transition-all border border-transparent hover:border-white/10 group">
-            <div className="text-right hidden md:block">
-              <p className="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{currentUser.nama || 'User'}</p>
-              <p className="text-xs text-slate-500 group-hover:text-slate-400">
-                {currentUser.role === 'admin' ? 'Administrator' : 'View Profile'}
-              </p>
-            </div>
-            <div className="relative">
-              <img 
-                src={avatarSrc} 
-                alt="Profile" 
-                className="w-10 h-10 rounded-full object-cover border-2 border-slate-700 group-hover:border-blue-500 transition-colors"
-                onError={(e) => e.target.src = `https://ui-avatars.com/api/?name=User&background=0ea5e9&color=fff`}
-              />
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-900 rounded-full"></div>
-            </div>
-          </Link>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
+            <Link to="/dashboard/profile" className="flex items-center gap-3 pl-4 py-1.5 pr-2 rounded-full hover:bg-white/5 transition-all border border-transparent hover:border-white/10 group">
+              <div className="text-right hidden md:block">
+                <p className="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors">{currentUser.nama || 'User'}</p>
+                <p className="text-xs text-slate-500 group-hover:text-slate-400">
+                  {currentUser.role === 'admin' ? 'Administrator' : 'View Profile'}
+                </p>
+              </div>
+              <div className="relative">
+                <img 
+                  src={avatarSrc} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-full object-cover border-2 border-slate-700 group-hover:border-blue-500 transition-colors"
+                  onError={(e) => e.target.src = `https://ui-avatars.com/api/?name=User&background=0ea5e9&color=fff`}
+                />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+              </div>
+            </Link>
+          </div>
         </header>
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-8 bg-slate-900">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 lg:p-8 bg-slate-900 animate-fade-in">
           <Outlet /> 
         </main>
       </div>

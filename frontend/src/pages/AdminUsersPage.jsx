@@ -12,7 +12,7 @@ function AdminUsersPage() {
   const me = useMemo(() => {
     try {
       return JSON.parse(localStorage.getItem('user') || '{}');
-    } catch (_) {
+    } catch {
       return {};
     }
   }, []);

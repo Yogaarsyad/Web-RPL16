@@ -1,12 +1,11 @@
 import React from 'react';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import FoodLogForm from '../components/FoodLogForm';
 import SleepLogForm from '../components/SleepLogForm';
 import ExerciseLogForm from '../components/ExerciseLogForm';
 import { FiCoffee, FiActivity, FiMoon, FiClock, FiLoader, FiTrendingUp } from 'react-icons/fi';
 
 function DashboardPage() {
-  // 1. Get Data from Context
   const { 
     foodLogs = [], 
     exerciseLogs = [], 
@@ -17,7 +16,16 @@ function DashboardPage() {
     addSleepLog
   } = useLog();
 
-  // 2. Loading State
+  // Debug: Log data setiap kali ada perubahan
+  React.useEffect(() => {
+    console.log('📊 Dashboard - Current data:', {
+      foodLogs: foodLogs.length,
+      exerciseLogs: exerciseLogs.length,
+      sleepLogs: sleepLogs.length,
+      loading
+    });
+  }, [foodLogs, exerciseLogs, sleepLogs, loading]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900">
@@ -27,48 +35,59 @@ function DashboardPage() {
     );
   }
 
-  // 3. Calculate Today's Data (Realtime)
-  const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
-  
-  // Helper function to check if log date is today
+  // --- PERBAIKAN: Fungsi Cek Tanggal yang Lebih Kuat ---
   const isToday = (dateString) => {
     if (!dateString) return false;
-    const logDate = new Date(dateString).toISOString().split('T')[0];
-    return logDate === today;
+    
+    const today = new Date();
+    const logDate = new Date(dateString);
+
+    // Bandingkan Tanggal, Bulan, dan Tahun (Abaikan Jam)
+    return (
+      logDate.getDate() === today.getDate() &&
+      logDate.getMonth() === today.getMonth() &&
+      logDate.getFullYear() === today.getFullYear()
+    );
   };
 
-  // Calculate Today's Food Calories
+  // --- Hitung Data Hari Ini ---
   const todayFoodCalories = foodLogs
     .filter(log => isToday(log.tanggal))
     .reduce((sum, log) => sum + (parseInt(log.kalori) || 0), 0);
 
-  // Calculate Today's Burned Calories
   const todayExerciseCalories = exerciseLogs
     .filter(log => isToday(log.tanggal))
     .reduce((sum, log) => sum + (parseInt(log.kalori_terbakar) || 0), 0);
 
-  // Calculate Today's Sleep Duration
   const todaySleepHours = sleepLogs
     .filter(log => isToday(log.tanggal))
     .reduce((sum, log) => {
       if (!log.waktu_tidur || !log.waktu_bangun) return sum;
+      
       const start = new Date(log.waktu_tidur);
       const end = new Date(log.waktu_bangun);
-      const diffMs = end - start;
-      const hours = diffMs / (1000 * 60 * 60); // Convert ms to hours
+      
+      let diffMs = end - start;
+      // Jika bangunnya besok hari (negatif), tambahkan 24 jam
+      if (diffMs < 0) {
+        diffMs += 24 * 60 * 60 * 1000;
+      }
+      
+      const hours = diffMs / (1000 * 60 * 60);
       return sum + (hours > 0 ? hours : 0);
     }, 0);
 
-  // --- Handlers (Wrapper) ---
   const handleAddFoodLog = (logData) => addFoodLog(logData);
   const handleAddSleepLog = (logData) => addSleepLog(logData);
   const handleAddExerciseLog = (logData) => addExerciseLog(logData);
 
-  // Helper for sleep duration display in list
   const getSleepDuration = (start, end) => {
     if (!start || !end) return '0';
-    const diffMs = new Date(end) - new Date(start);
-    return (diffMs / (1000 * 60 * 60)).toFixed(2);
+    const s = new Date(start);
+    const e = new Date(end);
+    let diff = e - s;
+    if (diff < 0) diff += 24 * 60 * 60 * 1000;
+    return (diff / (1000 * 60 * 60)).toFixed(1);
   };
 
   return (
@@ -141,7 +160,7 @@ function DashboardPage() {
                     foodLogs.map(log => (
                       <div key={log.id || log._id} className="flex justify-between items-center p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
                         <div>
-                          <p className="font-bold text-slate-100 text-lg">{log.nama_makanan}</p>
+                          <p className="font-bold text-slate-100 text-lg capitalize">{log.nama_makanan}</p>
                           <p className="text-xs text-slate-400 font-medium mt-1 flex items-center">
                             <FiClock className="mr-1.5 text-blue-400"/> {new Date(log.tanggal).toLocaleDateString()}
                           </p>
@@ -232,12 +251,16 @@ function DashboardPage() {
                           </div>
                         </div>
                         <div className="text-right hidden sm:block space-y-1">
-                           <div className="text-xs font-medium text-purple-200 bg-purple-900/40 px-2 py-1 rounded-lg inline-block mr-1 border border-purple-500/20">
-                             🛌 {new Date(log.waktu_tidur).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                           </div>
-                           <div className="text-xs font-medium text-yellow-200 bg-yellow-900/40 px-2 py-1 rounded-lg inline-block border border-yellow-500/20">
-                             🌅 {new Date(log.waktu_bangun).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                           </div>
+                           {log.waktu_tidur && (
+                             <div className="text-xs font-medium text-purple-200 bg-purple-900/40 px-2 py-1 rounded-lg inline-block mr-1 border border-purple-500/20">
+                               🛌 {new Date(log.waktu_tidur).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                             </div>
+                           )}
+                           {log.waktu_bangun && (
+                             <div className="text-xs font-medium text-yellow-200 bg-yellow-900/40 px-2 py-1 rounded-lg inline-block border border-yellow-500/20">
+                               🌅 {new Date(log.waktu_bangun).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                             </div>
+                           )}
                         </div>
                       </div>
                     ))
@@ -253,15 +276,6 @@ function DashboardPage() {
 }
 
 // --- SUB COMPONENTS ---
-
-function SectionHeader({ title, color }) {
-  return (
-    <div className="flex items-center gap-3 px-1">
-      <div className={`w-1 h-8 ${color} rounded-full shadow-[0_0_15px_rgba(var(--color-rgb),0.6)]`}></div>
-      <h2 className="text-2xl font-bold text-white tracking-wide">{title}</h2>
-    </div>
-  );
-}
 
 function StatCard({ icon, title, value, unit, color }) {
   const styles = {
@@ -286,6 +300,15 @@ function StatCard({ icon, title, value, unit, color }) {
            {value} <span className="text-sm text-slate-400 font-normal ml-1">{unit}</span>
          </p>
        </div>
+    </div>
+  );
+}
+
+function SectionHeader({ title, color }) {
+  return (
+    <div className="flex items-center gap-3 px-1">
+      <div className={`w-1 h-8 ${color} rounded-full shadow-[0_0_15px_rgba(var(--color-rgb),0.6)]`}></div>
+      <h2 className="text-2xl font-bold text-white tracking-wide">{title}</h2>
     </div>
   );
 }

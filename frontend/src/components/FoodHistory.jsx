@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FaTrash } from 'react-icons/fa'; // <-- 1. IMPOR IKON
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 
 function FoodHistory({ foodLogs }) {
   const { deleteFoodLog } = useLog();

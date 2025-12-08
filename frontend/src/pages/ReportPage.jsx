@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import {
   Chart as ChartJS,
   CategoryScale,

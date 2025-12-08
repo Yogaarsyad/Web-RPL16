@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import html2canvas from 'html2canvas';
 import { FiDownload, FiShare2, FiActivity, FiUser, FiClock, FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -57,7 +57,7 @@ function SocialSharePage() {
       return new Date(dateString).toLocaleDateString('en-US', { 
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
       });
-    } catch (e) { return dateString; }
+    } catch { return dateString; }
   };
 
   return (

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FaTrash } from 'react-icons/fa'; // <-- IMPOR IKON TRASH
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 
 function ExerciseHistory({ exerciseLogs }) {
   const { deleteExerciseLog } = useLog();

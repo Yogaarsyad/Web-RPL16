@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import { FiMoon, FiClock, FiCalendar, FiTrash2 } from 'react-icons/fi';
 
 function SleepLogList() {

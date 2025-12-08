@@ -1,9 +1,11 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 // Navbar komponen dengan logo dan tombol login.
 function Navbar() {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent text-white">
@@ -24,11 +26,12 @@ function Navbar() {
           <span className="text-2xl font-bold select-none">LifeMon</span>
         </Link>
 
-        {/* Tombol Login / Profil */}
-        <div className="flex items-center space-x-3">
+        {/* Tombol Login / Language Switcher */}
+        <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <Link to="/login">
-            <button className="px-4 py-2 rounded-md bg-white text-primary font-semibold text-sm">
-              Login
+            <button className="px-4 py-2 rounded-md bg-white text-slate-900 font-semibold text-sm hover:bg-slate-100 transition-all">
+              {t('navbar.login')}
             </button>
           </Link>
         </div>

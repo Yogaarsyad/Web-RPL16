@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getJournals } from '../services/api';
 import { FiFileText, FiBell } from 'react-icons/fi';
 
 function JournalPage() {
+  const { t } = useTranslation();
   const [journals, setJournals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   // Load journals saat halaman dibuka
-  const loadJournals = async () => {
+  const loadJournals = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -17,15 +19,15 @@ function JournalPage() {
       setJournals(Array.isArray(data) ? data : data.data || []);
     } catch (err) {
       console.error("Failed to load journals:", err);
-      setError('Gagal memuat pengumuman');
+      setError(t('journal.loadFailed'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     loadJournals();
-  }, []);
+  }, [loadJournals]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8 font-sans">
@@ -37,15 +39,15 @@ function JournalPage() {
                 <FiBell size={24} />
             </div>
             <div>
-                <h1 className="text-3xl font-bold text-white tracking-tight">Pengumuman</h1>
-                <p className="text-slate-400 mt-1 text-sm">Baca pengumuman dan informasi penting dari aplikasi.</p>
+                <h1 className="text-3xl font-bold text-white tracking-tight">{t('journal.title')}</h1>
+                <p className="text-slate-400 mt-1 text-sm">{t('journal.subtitle')}</p>
             </div>
         </div>
 
         {/* Loading State */}
         {loading && (
           <div className="text-center py-12 bg-slate-800/30 rounded-2xl border border-white/5">
-            <p className="text-slate-400">Memuat pengumuman...</p>
+            <p className="text-slate-400">{t('common.loading')}</p>
           </div>
         )}
 
@@ -57,7 +59,7 @@ function JournalPage() {
               onClick={loadJournals}
               className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white text-sm font-medium transition-colors"
             >
-              Coba Lagi
+              {t('common.tryAgain')}
             </button>
           </div>
         )}
@@ -65,7 +67,7 @@ function JournalPage() {
         {/* Empty State */}
         {!loading && !error && journals.length === 0 && (
           <div className="text-center py-12 bg-slate-800/30 rounded-2xl border border-white/5 border-dashed">
-            <p className="text-slate-500 text-sm">Belum ada pengumuman yang dipublikasikan.</p>
+            <p className="text-slate-500 text-sm">{t('journal.empty')}</p>
           </div>
         )}
 

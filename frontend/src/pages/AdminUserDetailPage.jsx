@@ -20,7 +20,6 @@ function AdminUserDetailPage() {
   const [detail, setDetail] = useState(null);
   const [tab, setTab] = useState('food');
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   // State Modal Chat
   const [msgModalOpen, setMsgModalOpen] = useState(false);
@@ -28,7 +27,7 @@ function AdminUserDetailPage() {
   const [sending, setSending] = useState(false);
 
   const me = useMemo(() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch (_) { return {}; }
+    try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
   }, []);
   const isAdmin = me?.role === 'admin';
 
@@ -36,11 +35,10 @@ function AdminUserDetailPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      setLoading(true);
       try {
         const { data } = await adminGetUserDetail(id);
         if (mounted) setDetail(data);
-      } catch (e) { console.error(e); } finally { if (mounted) setLoading(false); }
+      } catch (e) { console.error(e); }
     })();
     return () => { mounted = false; };
   }, [id]);
@@ -53,7 +51,9 @@ function AdminUserDetailPage() {
       try {
         const { data } = await adminGetUserLogs(id, tab);
         if (mounted) setLogs(data || []);
-      } catch (e) { if (mounted) setLogs([]); }
+      } catch {
+        if (mounted) setLogs([]);
+      }
     })();
     return () => { mounted = false; };
   }, [id, tab, isAdmin]);
@@ -67,7 +67,7 @@ function AdminUserDetailPage() {
         alert('Pesan berhasil dikirim!');
         setMsgText('');
         setMsgModalOpen(false);
-    } catch(e) {
+    } catch {
         alert('Gagal mengirim pesan.');
     } finally {
         setSending(false);

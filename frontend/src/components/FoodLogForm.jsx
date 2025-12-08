@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { checkCalories } from '../services/api';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import { FiCoffee, FiActivity, FiCalendar, FiSearch, FiCheckCircle, FiInfo, FiPlus, FiAlertCircle } from 'react-icons/fi';
 
 function FoodLogForm() {
@@ -31,18 +31,24 @@ function FoodLogForm() {
 
     setSubmitting(true);
     try {
-      await addFoodLog({ 
+      console.log('Submitting food log form...');
+      const result = await addFoodLog({ 
         nama_makanan: foodName, 
         kalori: parseInt(calories), 
         tanggal: date 
       });
+      console.log('Food log submitted successfully:', result);
       
       // Reset form
       setFoodName('');
       setCalories('');
       setDate(new Date().toISOString().split('T')[0]);
-      setAiResponse(null);
+      setAiResponse({ success: 'Food log added successfully!' });
+      
+      // Clear success message after 2 seconds
+      setTimeout(() => setAiResponse(null), 2000);
     } catch (error) {
+      console.error('Error submitting food log:', error);
       setAiResponse({ error: error.message });
     } finally {
       setSubmitting(false);

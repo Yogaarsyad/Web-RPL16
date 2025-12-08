@@ -1,7 +1,8 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-import { 
-  getFoodLogs, 
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from './useAuth';
+import LogContext from './LogContextProvider';
+import {
+  getFoodLogs,
   addFoodLog as apiAddFoodLog, 
   deleteFoodLog as apiDeleteFoodLog,
   getExerciseLogs,
@@ -12,16 +13,6 @@ import {
   deleteSleepLog as apiDeleteSleepLog
 } from '../services/api';
 
-const LogContext = createContext();
-
-export const useLog = () => {
-  const context = useContext(LogContext);
-  if (!context) { 
-    throw new Error('useLog must be used within LogProvider');
-  }
-  return context;
-};
-
 export const LogProvider = ({ children }) => {
   const [foodLogs, setFoodLogs] = useState([]);
   const [exerciseLogs, setExerciseLogs] = useState([]);
@@ -29,21 +20,18 @@ export const LogProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadAllData();
-    } else {
+  const loadAllData = useCallback(async () => {
+    if (!isAuthenticated) {
+      console.log('❌ LogContext - User not authenticated, skipping data load');
       setFoodLogs([]);
       setExerciseLogs([]);
       setSleepLogs([]);
+      return;
     }
-  }, [isAuthenticated]);
-
-  const loadAllData = async () => {
-    if (!isAuthenticated) return;
     
+    console.log('🔄 LogContext - Starting data load... user:', user?.id);
     setLoading(true);
     setError('');
     
@@ -54,16 +42,33 @@ export const LogProvider = ({ children }) => {
         getSleepLogs()
       ]);
 
+      console.log('✅ LogContext - Data loaded successfully:', {
+        food: foodResponse.data?.length || 0,
+        exercise: exerciseResponse.data?.length || 0,
+        sleep: sleepResponse.data?.length || 0
+      });
+
       setFoodLogs(foodResponse.data || []);
       setExerciseLogs(exerciseResponse.data || []);
       setSleepLogs(sleepResponse.data || []);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
       setError('Failed to load data');
+      // Set empty arrays saat error
+      setFoodLogs([]);
+      setExerciseLogs([]);
+      setSleepLogs([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user]);
+
+  // Load data saat component mount atau ketika isAuthenticated berubah
+  useEffect(() => {
+    console.log('📋 useEffect triggered - isAuthenticated:', isAuthenticated);
+    loadAllData();
+  }, [isAuthenticated, loadAllData]);
+
 
   const addFoodLog = async (logData) => {
     if (!isAuthenticated) {
@@ -74,13 +79,20 @@ export const LogProvider = ({ children }) => {
     setError('');
     
     try {
+      console.log('Adding food log with data:', logData);
       const response = await apiAddFoodLog(logData);
       const newLog = response.data;
       
-      setFoodLogs(prev => [newLog, ...prev]);
+      console.log('Food log added successfully:', newLog);
+      setFoodLogs(prev => {
+        const updated = [newLog, ...prev];
+        console.log('Updated foodLogs state:', updated);
+        return updated;
+      });
       return newLog;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to add food log';
+      console.error('Error adding food log:', errorMessage, error);
       setError(errorMessage);
       throw new Error(errorMessage);
     } finally {

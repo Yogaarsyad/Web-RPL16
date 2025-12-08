@@ -11,7 +11,7 @@ function ProfilePage() {
   const getFullImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http') || url.startsWith('blob:')) return url;
-    // Pastikan tidak ada double slash
+    // Pastikan tidak ada double slash - gunakan localhost:5000 untuk development
     const cleanUrl = url.startsWith('/') ? url : `/${url}`;
     return `http://localhost:5000${cleanUrl}`;
   };
@@ -78,7 +78,8 @@ function ProfilePage() {
   // --- UPDATE PREVIEW SAAT PROFILE BERUBAH ---
   useEffect(() => {
     if (profile.avatar_url) {
-      setImagePreview(getFullImageUrl(profile.avatar_url));
+      // Tambahkan cache busting untuk memastikan gambar selalu fresh
+      setImagePreview(getFullImageUrl(profile.avatar_url) + `?t=${Date.now()}`);
     } else {
       setImagePreview(getDefaultAvatar(profile.nama));
     }
@@ -123,51 +124,62 @@ function ProfilePage() {
       const formData = new FormData();
       formData.append('avatar', file);
       
-      console.log('Uploading avatar...');
+      console.log('📸 Uploading avatar...');
       const response = await uploadAvatar(formData);
-      console.log('Full response:', response);
-      console.log('Response data:', response.data);
-      console.log('Response structure:', JSON.stringify(response, null, 2));
+      console.log('📸 Full response:', response);
+      console.log('📸 response.data:', response?.data);
 
       // Parse response - backend returns { success, message, data: { avatar_url, ... } }
       const responseData = response?.data;
       let newAvatarUrl = responseData?.data?.avatar_url;
       
-      console.log('📸 Avatar response structure:', { responseData, newAvatarUrl });
+      console.log('📸 Avatar response structure - URL:', newAvatarUrl);
 
       if (newAvatarUrl) {
-        console.log('New avatar URL found:', newAvatarUrl);
+        console.log('✅ Avatar URL found:', newAvatarUrl);
         
         // Update state profile
         setProfile(prev => ({ ...prev, avatar_url: newAvatarUrl }));
         
-        // Update localStorage
+        // Update localStorage dengan semua data terbaru
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const updatedUser = { ...user, avatar_url: newAvatarUrl };
+        const updatedUser = { 
+          ...user, 
+          avatar_url: newAvatarUrl,
+          id: responseData?.data?.id || user.id,
+          nama: responseData?.data?.nama || user.nama,
+          email: responseData?.data?.email || user.email
+        };
         localStorage.setItem('user', JSON.stringify(updatedUser));
+        console.log('💾 Updated localStorage avatar:', updatedUser.avatar_url);
         
-        // Trigger event untuk update header
-        window.dispatchEvent(new Event('user-updated'));
+        // Trigger event untuk update header DENGAN DELAY untuk memastikan localStorage sudah update
+        setTimeout(() => {
+          window.dispatchEvent(new Event('user-updated'));
+          console.log('🔄 Dispatched user-updated event');
+        }, 100);
         
         // Cleanup temp preview
         URL.revokeObjectURL(tempPreview);
         
-        // Set preview dengan URL server
-        setImagePreview(getFullImageUrl(newAvatarUrl));
+        // Set preview dengan URL server + cache busting timestamp
+        const fullImageUrl = getFullImageUrl(newAvatarUrl) + `?t=${Date.now()}`;
+        setImagePreview(fullImageUrl);
+        console.log('🖼️ Image preview URL:', fullImageUrl);
         
-        alert("Foto profil berhasil diperbarui!");
+        alert("✅ Foto profil berhasil diperbarui!");
       } else {
-        console.error('Avatar URL not found in response');
-        throw new Error('Avatar URL not found in server response. Check console for response structure.');
+        console.error('❌ Avatar URL not found in response');
+        throw new Error('Avatar URL tidak ditemukan di response server. Cek console untuk struktur response lengkap.');
       }
     } catch (error) {
-      console.error("Upload failed:", error);
-      console.error("Error details:", error.response);
-      alert(`Gagal upload foto: ${error.message}`);
+      console.error("❌ Upload failed:", error);
+      console.error("❌ Error details:", error.response?.data || error.message);
+      alert(`❌ Gagal upload foto: ${error.message}`);
       
       // Kembalikan ke preview sebelumnya
       if (profile.avatar_url) {
-        setImagePreview(getFullImageUrl(profile.avatar_url));
+        setImagePreview(getFullImageUrl(profile.avatar_url) + `?t=${Date.now()}`);
       } else {
         setImagePreview(getDefaultAvatar(profile.nama));
       }

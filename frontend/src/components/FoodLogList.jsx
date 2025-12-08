@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLog } from '../context/LogContext';
+import { useLog } from '../context/useLog';
 import { FiCoffee, FiCalendar, FiTrash2, FiAlertCircle, FiX } from 'react-icons/fi';
 
 function FoodLogList() {
