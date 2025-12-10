@@ -1,4 +1,11 @@
-# Logs
+# --- Dependencies ---
+node_modules
+/node_modules
+package-lock.json   # Opsional: Hapus baris ini jika Anda INGIN meng-upload lockfile (disarankan di-upload)
+yarn.lock           # Opsional: Hapus baris ini jika Anda pakai Yarn dan ingin lockfile di-upload
+pnpm-lock.yaml      # Opsional: Hapus baris ini jika pakai pnpm
+
+# --- Testing & Logs ---
 logs
 *.log
 npm-debug.log*
@@ -6,19 +13,41 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+coverage
+*.lcov
+.nyc_output
 
-node_modules
+# --- Build Output ---
 dist
 dist-ssr
-*.local
+build
+out
 
-# Editor directories and files
+# --- Environment Variables (SANGAT PENTING/WAJIB) ---
+# Ini mencegah kunci rahasia dan database URL ter-upload ke GitHub
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+.env.development
+
+# --- Vercel ---
+# Folder ini dibuat otomatis saat Anda menjalankan 'vercel dev' di local
+.vercel
+
+# --- Editor & OS Files ---
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+uploads/*
+!uploads/.gitkeep 
